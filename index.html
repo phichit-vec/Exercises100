@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python 100 Exercises with Auto-Grader</title>
+    
+    <script src="https://skulpt.org/js/skulpt.min.js"></script>
+    <script src="https://skulpt.org/js/skulpt-stdlib.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e1e; color: #f4f4f9; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #61dafb; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .question-card { background: #2d2d2d; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 30px; border: 1px solid #444; }
+        .topic-badge { display: inline-block; background: #007bff; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; margin-bottom: 10px; font-weight: bold; }
+        h2 { margin-top: 0; color: #fff; }
+        p { color: #ccc; }
+        .test-case { background: #111; color: #a9b7c6; padding: 10px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; margin-top: 10px; font-size: 0.9em; }
+        
+        /* สไตล์สำหรับกล่องเขียนโค้ดและปุ่ม */
+        .editor-section { margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px; }
+        .code-editor { width: 100%; background: #1e1e1e; color: #dcdcaa; font-family: 'Courier New', Courier, monospace; font-size: 1em; padding: 10px; border: 1px solid #555; border-radius: 4px; box-sizing: border-box; resize: vertical; margin-bottom: 10px; outline: none; }
+        .code-editor:focus { border-color: #61dafb; }
+        .run-btn { background: #28a745; color: white; border: none; padding: 8px 16px; font-size: 1em; border-radius: 4px; cursor: pointer; transition: background 0.2s; font-weight: bold; }
+        .run-btn:hover { background: #218838; }
+        .output-console { background: #000; color: #fff; padding: 10px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; margin-top: 10px; min-height: 40px; border-left: 4px solid #61dafb; }
+        
+        .footer { text-align: center; margin-top: 40px; color: #888; font-size: 0.9em; padding-bottom: 40px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🐍 Python Auto-Grader (100 ข้อ)</h1>
+    <p style="text-align: center; color: #aaa;">เขียนโค้ด Python ลงในกล่อง แล้วกดปุ่ม Run & Test เพื่อตรวจคำตอบ</p>
+    <div id="exercise-list"></div>
+    <div class="footer">Powered by Skulpt (Client-side Python Compiler) 🚀</div>
+</div>
+
+<script>
+    // ข้อมูลโจทย์ทั้ง 100 ข้อ
+    const questionsData = [
+        {"id": 1, "topic": "Basic I/O", "title": "ทักทายชาวโลก", "description": "จงเขียนโปรแกรมแสดงข้อความว่า 'Hello, Python!'", "test_cases": [{"input": "", "expected": "Hello, Python!"}]},
+        {"id": 2, "topic": "Variables", "title": "บวกเลขเบาๆ", "description": "รับค่าตัวเลขจำนวนเต็ม 2 ตัว (บรรทัดละตัว) แล้วแสดงผลบวก", "test_cases": [{"input": "5\n3", "expected": "8"}, {"input": "-2\n10", "expected": "8"}]},
+        {"id": 3, "topic": "If-Else", "title": "คู่หรือคี่", "description": "รับค่าตัวเลขจำนวนเต็ม 1 ตัว หากเป็นเลขคู่ให้พิมพ์ 'Even' หากเป็นเลขคี่ให้พิมพ์ 'Odd'", "test_cases": [{"input": "4", "expected": "Even"}, {"input": "7", "expected": "Odd"}]},
+        {"id": 4, "topic": "If-Else", "title": "ตัดเกรด", "description": "รับคะแนน (0-100) ถ้าคะแนน >= 80 ได้ 'A', >= 50 ได้ 'Pass', นอกนั้น 'Fail'", "test_cases": [{"input": "85", "expected": "A"}, {"input": "60", "expected": "Pass"}, {"input": "49", "expected": "Fail"}]},
+        {"id": 5, "topic": "Loop", "title": "นับเลข 1 ถึง N", "description": "รับค่า N แล้วพิมพ์ตัวเลข 1 ถึง N บรรทัดละ 1 ตัว", "test_cases": [{"input": "3", "expected": "1\n2\n3"}]},
+        {"id": 6, "topic": "Loop", "title": "สูตรคูณ", "description": "รับค่าแม่สูตรคูณ X และพิมพ์สูตรคูณตั้งแต่ X * 1 ถึง X * 12", "test_cases": [{"input": "2", "expected": "2 * 1 = 2\n2 * 2 = 4\n2 * 3 = 6\n2 * 4 = 8\n2 * 5 = 10\n2 * 6 = 12\n2 * 7 = 14\n2 * 8 = 16\n2 * 9 = 18\n2 * 10 = 20\n2 * 11 = 22\n2 * 12 = 24"}]},
+        {"id": 7, "topic": "List", "title": "สร้าง List พื้นฐาน", "description": "รับตัวเลข 5 ตัว (บรรทัดละตัว) เก็บใส่ List แล้วพิมพ์ List นั้นออกมา", "test_cases": [{"input": "1\n2\n3\n4\n5", "expected": "[1, 2, 3, 4, 5]"}]},
+        {"id": 8, "topic": "List", "title": "หาค่ามากที่สุดใน List", "description": "รับตัวเลข 1 บรรทัดโดยคั่นด้วยช่องว่าง (Space) นำไปสร้าง List แล้วหาค่ามากที่สุด", "test_cases": [{"input": "10 5 20 8", "expected": "20"}]},
+        {"id": 9, "topic": "List", "title": "กลับด้าน List (Reverse)", "description": "รับตัวเลข 1 บรรทัดคั่นด้วยช่องว่าง พิมพ์ List นั้นในมุมกลับด้าน", "test_cases": [{"input": "1 2 3 4", "expected": "['4', '3', '2', '1']"}]},
+        {"id": 10, "topic": "List", "title": "ผลรวมเฉพาะเลขบวก", "description": "รับตัวเลข 1 บรรทัดคั่นด้วยช่องว่าง หาผลรวมของตัวเลขเฉพาะที่มากกว่า 0 ใน List", "test_cases": [{"input": "1 -2 3 -4 5", "expected": "9"}]},
+        {"id": 11, "topic": "Math", "title": "พื้นที่สี่เหลี่ยม", "description": "รับความกว้างและความยาว (บรรทัดละตัว) แล้วแสดงพื้นที่", "test_cases": [{"input": "5\n4", "expected": "20"}]},
+        {"id": 12, "topic": "Math", "title": "พื้นที่สามเหลี่ยม", "description": "รับฐานและสูง (บรรทัดละตัว) แล้วแสดงพื้นที่ (ทศนิยม 1 ตำแหน่ง)", "test_cases": [{"input": "10\n5", "expected": "25.0"}]},
+        {"id": 13, "topic": "Math", "title": "แปลงอุณหภูมิ C to F", "description": "รับองศาเซลเซียส แปลงเป็นฟาเรนไฮต์ (F = C * 9/5 + 32)", "test_cases": [{"input": "0", "expected": "32.0"}]},
+        {"id": 14, "topic": "Math", "title": "แปลงอุณหภูมิ F to C", "description": "รับองศาฟาเรนไฮต์ แปลงเป็นเซลเซียส", "test_cases": [{"input": "32", "expected": "0.0"}]},
+        {"id": 15, "topic": "Math", "title": "คำนวณ BMI", "description": "รับน้ำหนัก (kg) และส่วนสูง (m) บรรทัดละตัว คำนวณ BMI (น้ำหนัก / ส่วนสูงยกกำลังสอง)", "test_cases": [{"input": "60\n1.5", "expected": "26.666666666666668"}]},
+        {"id": 16, "topic": "Math", "title": "หลักหน่วย", "description": "รับตัวเลข 1 ตัว แล้วแสดงผลเฉพาะเลขหลักหน่วย", "test_cases": [{"input": "256", "expected": "6"}]},
+        {"id": 17, "topic": "Math", "title": "ตัดหลักหน่วยทิ้ง", "description": "รับตัวเลข 1 ตัว แล้วแสดงผลตัวเลขที่ถูกตัดหลักหน่วยทิ้งไปแล้ว", "test_cases": [{"input": "256", "expected": "25"}]},
+        {"id": 18, "topic": "Math", "title": "วันเป็นชั่วโมง", "description": "รับจำนวนวัน แล้วแปลงเป็นจำนวนชั่วโมง", "test_cases": [{"input": "2", "expected": "48"}]},
+        {"id": 19, "topic": "Math", "title": "วินาทีเป็นนาที", "description": "รับจำนวนวินาที แปลงเป็นนาทีและวินาทีที่เหลือ (เช่น X min Y sec)", "test_cases": [{"input": "125", "expected": "2 min 5 sec"}]},
+        {"id": 20, "topic": "Math", "title": "หารเอาเศษ", "description": "รับตัวเลข 2 ตัว (A และ B) แสดงเศษที่ได้จากการหาร A ด้วย B", "test_cases": [{"input": "10\n3", "expected": "1"}]},
+        {"id": 21, "topic": "If-Else", "title": "บวกหรือลบ", "description": "รับตัวเลข 1 ตัว ตรวจสอบว่าเป็น Positive, Negative หรือ Zero", "test_cases": [{"input": "-5", "expected": "Negative"}]},
+        {"id": 22, "topic": "If-Else", "title": "สอบผ่านไหม", "description": "รับคะแนน ตรวจสอบว่า >= 50 คือ Pass นอกนั้น Fail", "test_cases": [{"input": "50", "expected": "Pass"}]},
+        {"id": 23, "topic": "If-Else", "title": "หาค่ามากสุดจาก 2 ตัว", "description": "รับเลข 2 ตัว แสดงตัวที่มากกว่า", "test_cases": [{"input": "10\n20", "expected": "20"}]},
+        {"id": 24, "topic": "If-Else", "title": "หาค่ามากสุดจาก 3 ตัว", "description": "รับเลข 3 ตัว แสดงตัวที่มากที่สุด", "test_cases": [{"input": "5\n15\n10", "expected": "15"}]},
+        {"id": 25, "topic": "If-Else", "title": "ค่าน้อยสุดจาก 3 ตัว", "description": "รับเลข 3 ตัว แสดงตัวที่น้อยที่สุด", "test_cases": [{"input": "5\n15\n10", "expected": "5"}]},
+        {"id": 26, "topic": "If-Else", "title": "ปีอธิกสุรทิน (Leap Year)", "description": "รับปี ค.ศ. ตรวจสอบว่าเป็น Leap Year หรือไม่ (True/False)", "test_cases": [{"input": "2024", "expected": "True"}]},
+        {"id": 27, "topic": "If-Else", "title": "วัยไหน", "description": "รับอายุ ถ้า <13: Child, 13-19: Teen, >=20: Adult", "test_cases": [{"input": "15", "expected": "Teen"}]},
+        {"id": 28, "topic": "If-Else", "title": "สามเหลี่ยมมุมฉากไหม", "description": "รับความยาว 3 ด้าน ตรวจสอบว่าสามารถเป็นสามเหลี่ยมมุมฉากได้หรือไม่ (Yes/No)", "test_cases": [{"input": "3\n4\n5", "expected": "Yes"}]},
+        {"id": 29, "topic": "If-Else", "title": "ตัวอักษรพิมพ์เล็กหรือใหญ่", "description": "รับตัวอักษรภาษาอังกฤษ 1 ตัว ตอบว่าเป็น Upper หรือ Lower", "test_cases": [{"input": "A", "expected": "Upper"}]},
+        {"id": 30, "topic": "If-Else", "title": "สระหรือพยัญชนะ", "description": "รับตัวอักษร 1 ตัว ตรวจสอบว่าเป็น Vowel หรือ Consonant", "test_cases": [{"input": "e", "expected": "Vowel"}]},
+        {"id": 31, "topic": "If-Else", "title": "ส่วนลดร้านค้า", "description": "รับยอดซื้อ ถ้า >= 1000 ลด 10%, แสดงยอดสุทธิ", "test_cases": [{"input": "1200", "expected": "1080.0"}]},
+        {"id": 32, "topic": "If-Else", "title": "ค่าจอดรถ", "description": "ชั่วโมงแรกจอดฟรี ชั่วโมงต่อไปชั่วโมงละ 20 บาท เศษของชั่วโมงปัดขึ้น รับนาทีแล้วคำนวณ", "test_cases": [{"input": "65", "expected": "20"}]},
+        {"id": 33, "topic": "If-Else", "title": "เครื่องคิดเลขอย่างง่าย", "description": "รับเลข 2 ตัว และเครื่องหมาย (+, -, *, /) แสดงผลลัพธ์", "test_cases": [{"input": "5\n3\n-", "expected": "2"}]},
+        {"id": 34, "topic": "If-Else", "title": "ตั๋วหนัง", "description": "อายุ < 15 หรือ >= 60 ราคา 100 บาท, นอกนั้น 150 บาท รับอายุและคำนวณ", "test_cases": [{"input": "65", "expected": "100"}]},
+        {"id": 35, "topic": "If-Else", "title": "หารลงตัวทั้ง 3 และ 5", "description": "รับเลข 1 ตัว ตรวจสอบว่าหาร 3 และ 5 ลงตัวหรือไม่ (Yes/No)", "test_cases": [{"input": "15", "expected": "Yes"}]},
+        {"id": 36, "topic": "If-Else", "title": "เดือนนี้มีกี่วัน", "description": "รับหมายเลขเดือน (1-12) แสดงจำนวนวัน (สมมติเดือนกุมภาพันธ์มี 28 วัน)", "test_cases": [{"input": "4", "expected": "30"}]},
+        {"id": 37, "topic": "If-Else", "title": "ตัวเลขอยู่ในช่วงหรือไม่", "description": "รับเลข N ตรวจสอบว่าอยู่ระหว่าง 10 ถึง 50 หรือไม่ (In range / Out of range)", "test_cases": [{"input": "25", "expected": "In range"}]},
+        {"id": 38, "topic": "If-Else", "title": "รหัสผ่านถูกต้องไหม", "description": "รับรหัสผ่าน ถ้ารหัสคือ 'Python123' ให้แสดง 'Access Granted' นอกนั้น 'Access Denied'", "test_cases": [{"input": "Python123", "expected": "Access Granted"}]},
+        {"id": 39, "topic": "If-Else", "title": "จัดกลุ่มน้ำหนัก", "description": "BMI < 18.5 (Underweight), 18.5-24.9 (Normal), >= 25 (Overweight)", "test_cases": [{"input": "20", "expected": "Normal"}]},
+        {"id": 40, "topic": "If-Else", "title": "เกมเป่ายิ้งฉุบ", "description": "รับ P1 และ P2 (Rock, Paper, Scissors) แสดงผู้ชนะ (P1 Wins, P2 Wins, Draw)", "test_cases": [{"input": "Rock\nScissors", "expected": "P1 Wins"}]},
+        {"id": 41, "topic": "Loop", "title": "พิมพ์ 1 ถึง 10", "description": "ใช้ลูปพิมพ์ 1 ถึง 10 บรรทัดละตัว", "test_cases": [{"input": "", "expected": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10"}]},
+        {"id": 42, "topic": "Loop", "title": "พิมพ์ N ถึง 1", "description": "รับเลข N พิมพ์เลขนับถอยหลังจนถึง 1", "test_cases": [{"input": "3", "expected": "3\n2\n1"}]},
+        {"id": 43, "topic": "Loop", "title": "ผลรวม 1 ถึง N", "description": "รับเลข N หาผลรวมตั้งแต่ 1 + 2 + ... + N", "test_cases": [{"input": "5", "expected": "15"}]},
+        {"id": 44, "topic": "Loop", "title": "ผลรวมเลขคู่", "description": "รับเลข N หาผลรวมของเลขคู่ตั้งแต่ 1 ถึง N", "test_cases": [{"input": "10", "expected": "30"}]},
+        {"id": 45, "topic": "Loop", "title": "ผลรวมเลขคี่", "description": "รับเลข N หาผลรวมของเลขคี่ตั้งแต่ 1 ถึง N", "test_cases": [{"input": "5", "expected": "9"}]},
+        {"id": 46, "topic": "Loop", "title": "แฟกทอเรียล (Factorial)", "description": "รับเลข N หาค่า N! (N >= 0)", "test_cases": [{"input": "4", "expected": "24"}]},
+        {"id": 47, "topic": "Loop", "title": "หาจำนวนตัวหาร", "description": "รับเลข N นับว่ามีตัวเลขกี่ตัวที่หาร N ลงตัว", "test_cases": [{"input": "6", "expected": "4"}]},
+        {"id": 48, "topic": "Loop", "title": "จำนวนเฉพาะ (Prime Number)", "description": "รับเลข N ตรวจสอบว่าเป็นจำนวนเฉพาะหรือไม่ (Prime / Not Prime)", "test_cases": [{"input": "7", "expected": "Prime"}]},
+        {"id": 49, "topic": "Loop", "title": "แม่สูตรคูณย้อนกลับ", "description": "รับเลข N พิมพ์สูตรคูณแม่ N ตั้งแต่ N*12 ถอยหลังจนถึง N*1", "test_cases": [{"input": "2", "expected": "2 * 12 = 24\n2 * 11 = 22\n2 * 10 = 20\n2 * 9 = 18\n2 * 8 = 16\n2 * 7 = 14\n2 * 6 = 12\n2 * 5 = 10\n2 * 4 = 8\n2 * 3 = 6\n2 * 2 = 4\n2 * 1 = 2"}]},
+        {"id": 50, "topic": "Loop", "title": "พิมพ์สี่เหลี่ยมดาว", "description": "รับขนาด N พิมพ์ดาว '*' เป็นรูปสี่เหลี่ยมจัตุรัส N x N", "test_cases": [{"input": "2", "expected": "**\n**"}]},
+        {"id": 51, "topic": "Loop", "title": "พิมพ์สามเหลี่ยมดาว", "description": "รับขนาด N พิมพ์ดาวรูปสามเหลี่ยมมุมฉากขนาด N บรรทัด", "test_cases": [{"input": "3", "expected": "*\n**\n***"}]},
+        {"id": 52, "topic": "Loop", "title": "หาตัวเลขที่มากที่สุดจากลูป", "description": "รับเลข N เป็นจำนวนรอบ จากนั้นรับตัวเลข N ตัว แสดงค่ามากสุด", "test_cases": [{"input": "3\n10\n5\n20", "expected": "20"}]},
+        {"id": 53, "topic": "Loop", "title": "หาค่าเฉลี่ย", "description": "รับเลข N เป็นจำนวนรอบ ตามด้วยตัวเลข N ตัว หาค่าเฉลี่ย", "test_cases": [{"input": "2\n10\n20", "expected": "15.0"}]},
+        {"id": 54, "topic": "Loop", "title": "นับเลขบวกและลบ", "description": "รับตัวเลขไปเรื่อยๆ จนกว่าจะพิมพ์ 0 ให้นับว่ามีเลขบวกกี่ตัว เลขลบกี่ตัว", "test_cases": [{"input": "5\n-1\n-2\n0", "expected": "Positive: 1, Negative: 2"}]},
+        {"id": 55, "topic": "Loop", "title": "ลำดับฟีโบนัชชี (Fibonacci)", "description": "รับเลข N พิมพ์ลำดับฟีโบนัชชี N ตัวแรก", "test_cases": [{"input": "5", "expected": "0, 1, 1, 2, 3"}]},
+        {"id": 56, "topic": "Loop", "title": "ผลรวมตัวเลขในแต่ละหลัก", "description": "รับตัวเลข 1 ชุด (เช่น 123) หาผลรวมของแต่ละหลัก (1+2+3)", "test_cases": [{"input": "123", "expected": "6"}]},
+        {"id": 57, "topic": "Loop", "title": "กลับด้านตัวเลข (Reverse Number)", "description": "รับตัวเลข แล้วพิมพ์ย้อนกลับ (เช่น 123 -> 321)", "test_cases": [{"input": "456", "expected": "654"}]},
+        {"id": 58, "topic": "Loop", "title": "หา ห.ร.ม. (GCD)", "description": "รับเลข 2 ตัว หาหาร่วมมาก", "test_cases": [{"input": "12\n8", "expected": "4"}]},
+        {"id": 59, "topic": "Loop", "title": "หา ค.ร.น. (LCM)", "description": "รับเลข 2 ตัว หาคูณร่วมน้อย", "test_cases": [{"input": "12\n8", "expected": "24"}]},
+        {"id": 60, "topic": "Loop", "title": "นับสระในข้อความ", "description": "รับ String 1 บรรทัด นับว่ามีสระ (a,e,i,o,u) กี่ตัว", "test_cases": [{"input": "hello", "expected": "2"}]},
+        {"id": 61, "topic": "Loop", "title": "เกมทายเลข", "description": "กำหนดคำตอบคือ 42 รับตัวเลขไปเรื่อยๆ ถ้าตรงให้พิมพ์ 'Correct' และจบโปรแกรม", "test_cases": [{"input": "10\n42", "expected": "Correct"}]},
+        {"id": 62, "topic": "Loop", "title": "พิมพ์ตัวอักษรสลับกัน", "description": "รับข้อความ แล้วพิมพ์ตัวอักษรทีละตัวคั่นด้วยขีด (เช่น ABC -> A-B-C)", "test_cases": [{"input": "CAT", "expected": "C-A-T"}]},
+        {"id": 63, "topic": "Loop", "title": "รหัสผ่านซ้ำ", "description": "รับข้อความ 2 ครั้ง ตรวจสอบว่าตรงกันหรือไม่ ถ้าไม่ตรงให้รับใหม่จนกว่าจะตรง", "test_cases": [{"input": "pass\nword\npass\npass", "expected": "Matched"}]},
+        {"id": 64, "topic": "Loop", "title": "บวกเพิ่มทีละ 5", "description": "พิมพ์เลขเริ่มจาก 0 เพิ่มทีละ 5 จนถึง 50", "test_cases": [{"input": "", "expected": "0\n5\n10\n15\n20\n25\n30\n35\n40\n45\n50"}]},
+        {"id": 65, "topic": "Loop", "title": "คูณด้วย 2 ไปเรื่อยๆ", "description": "เริ่มจาก 1 คูณด้วย 2 ไปเรื่อยๆ จนกว่าค่าจะเกิน 100", "test_cases": [{"input": "", "expected": "1\n2\n4\n8\n16\n32\n64\n128"}]},
+        {"id": 66, "topic": "Loop", "title": "สามเหลี่ยมตัวเลข", "description": "รับ N พิมพ์ 1 ถึง N ในรูปแบบสามเหลี่ยม", "test_cases": [{"input": "3", "expected": "1\n12\n123"}]},
+        {"id": 67, "topic": "Loop", "title": "ลบออกทีละนิด", "description": "รับ N แล้วลบออกทีละ 3 จนกว่าค่าจะติดลบ", "test_cases": [{"input": "10", "expected": "10\n7\n4\n1\n-2"}]},
+        {"id": 68, "topic": "Loop", "title": "ตัวอักษรพิมพ์ใหญ่ทั้งหมด", "description": "รับข้อความ พิมพ์ทีละตัวอักษรและแปลงเป็นตัวใหญ่", "test_cases": [{"input": "cat", "expected": "C\nA\nT"}]},
+        {"id": 69, "topic": "Loop", "title": "ผลรวมเฉพาะเลขหลักสิบ", "description": "รับเลข N รอบ นำเลขที่ได้มาหาผลรวมเฉพาะหลักสิบของทุกตัว", "test_cases": [{"input": "2\n152\n25", "expected": "7"}]},
+        {"id": 70, "topic": "Loop", "title": "นับคำในประโยค", "description": "รับประโยค (ใช้ Loop ตรวจจับช่องว่าง) เพื่อนับจำนวนคำ", "test_cases": [{"input": "hello world python", "expected": "3"}]},
+        {"id": 71, "topic": "List", "title": "ผลรวมใน List", "description": "รับเลขคั่นด้วยช่องว่าง เก็บเป็น List หาผลรวมทั้งหมด", "test_cases": [{"input": "1 2 3", "expected": "6"}]},
+        {"id": 72, "topic": "List", "title": "หาความยาว List", "description": "รับของคั่นด้วยช่องว่าง สร้าง List แล้วบอกความยาว (len)", "test_cases": [{"input": "apple banana papaya", "expected": "3"}]},
+        {"id": 73, "topic": "List", "title": "ค่าน้อยที่สุดใน List", "description": "รับเลขคั่นด้วยช่องว่าง หาค่าน้อยที่สุด", "test_cases": [{"input": "10 5 20", "expected": "5"}]},
+        {"id": 74, "topic": "List", "title": "ค้นหาตำแหน่ง (Index)", "description": "รับ List (บรรทัดแรก) และค่าที่ต้องการหา (บรรทัดสอง) แสดง Index ถ้าไม่เจอให้แสดง -1", "test_cases": [{"input": "a b c\nc", "expected": "2"}]},
+        {"id": 75, "topic": "List", "title": "เพิ่มข้อมูล (Append)", "description": "รับข้อมูลเก่าสร้าง List แล้วรับข้อมูลใหม่ 1 ตัวไปต่อท้าย", "test_cases": [{"input": "1 2\n3", "expected": "['1', '2', '3']"}]},
+        {"id": 76, "topic": "List", "title": "แทรกข้อมูล (Insert)", "description": "รับ List (บรรทัดแรก) รับตำแหน่ง (บรรทัดสอง) และข้อมูล (บรรทัดสาม) เพื่อ Insert", "test_cases": [{"input": "A C\n1\nB", "expected": "['A', 'B', 'C']"}]},
+        {"id": 77, "topic": "List", "title": "ลบข้อมูล (Remove)", "description": "รับ List และค่าที่ต้องการลบ ลบค่าแรกที่เจอ", "test_cases": [{"input": "1 2 3 2\n2", "expected": "['1', '3', '2']"}]},
+        {"id": 78, "topic": "List", "title": "ลบตำแหน่งสุดท้าย (Pop)", "description": "รับ List จัดการ Pop ตัวสุดท้ายออกแล้วพิมพ์ List ที่เหลือ", "test_cases": [{"input": "A B C", "expected": "['A', 'B']"}]},
+        {"id": 79, "topic": "List", "title": "นับจำนวนที่ซ้ำ (Count)", "description": "รับ List และค่าที่ต้องการนับ", "test_cases": [{"input": "1 2 1 3 1\n1", "expected": "3"}]},
+        {"id": 80, "topic": "List", "title": "เรียงลำดับน้อยไปมาก (Sort)", "description": "รับ List ของตัวเลข แล้วทำการ Sort แบบ Ascending", "test_cases": [{"input": "5 1 3", "expected": "[1, 3, 5]"}]},
+        {"id": 81, "topic": "List", "title": "เรียงลำดับมากไปน้อย", "description": "รับ List ของตัวเลข แล้วทำการ Sort แบบ Descending", "test_cases": [{"input": "5 1 3", "expected": "[5, 3, 1]"}]},
+        {"id": 82, "topic": "List", "title": "หั่นลิสต์ (Slicing) ครึ่งหน้า", "description": "รับ List พิมพ์เฉพาะข้อมูลครึ่งแรก (ถ้าคี่ให้ปัดขึ้น)", "test_cases": [{"input": "1 2 3 4", "expected": "['1', '2']"}]},
+        {"id": 83, "topic": "List", "title": "หั่นลิสต์ (Slicing) ครึ่งหลัง", "description": "รับ List พิมพ์เฉพาะข้อมูลครึ่งหลัง", "test_cases": [{"input": "1 2 3 4", "expected": "['3', '4']"}]},
+        {"id": 84, "topic": "List", "title": "ลบตัวที่ซ้ำกันทิ้ง (Unique)", "description": "รับ List ลบตัวที่ซ้ำกันออก (ใบ้: แปลงเป็น Set หรือ Loop)", "test_cases": [{"input": "1 2 2 3 3 3", "expected": "['1', '2', '3']"}]},
+        {"id": 85, "topic": "List", "title": "รวม List", "description": "รับ List 2 บรรทัด นำมาต่อกัน (Concatenation)", "test_cases": [{"input": "1 2\n3 4", "expected": "['1', '2', '3', '4']"}]},
+        {"id": 86, "topic": "List", "title": "คัดกรองเฉพาะเลขคู่", "description": "รับ List ของตัวเลข เก็บเฉพาะเลขคู่ไว้ใน List ใหม่", "test_cases": [{"input": "1 2 3 4 5", "expected": "[2, 4]"}]},
+        {"id": 87, "topic": "List", "title": "คัดกรองเฉพาะเลขคี่", "description": "รับ List ของตัวเลข เก็บเฉพาะเลขคี่ไว้ใน List ใหม่", "test_cases": [{"input": "1 2 3 4 5", "expected": "[1, 3, 5]"}]},
+        {"id": 88, "topic": "List", "title": "List Comprehension เบื้องต้น", "description": "รับ List ตัวเลข นำทุกตัวไปคูณ 2", "test_cases": [{"input": "1 2 3", "expected": "[2, 4, 6]"}]},
+        {"id": 89, "topic": "List", "title": "List Comprehension ความยาวคำ", "description": "รับ List ข้อความ แปลงเป็น List ความยาวของแต่ละข้อความ", "test_cases": [{"input": "cat dog python", "expected": "[3, 3, 6]"}]},
+        {"id": 90, "topic": "List", "title": "ตัวที่สองที่มากที่สุด", "description": "รับ List ตัวเลข หาค่าที่มากที่สุดเป็นอันดับสอง", "test_cases": [{"input": "10 20 15", "expected": "15"}]},
+        {"id": 91, "topic": "List", "title": "สลับที่สมาชิกใน List", "description": "รับ List นำตัวแรกสุดและตัวสุดท้ายสลับที่กัน", "test_cases": [{"input": "1 2 3 4", "expected": "['4', '2', '3', '1']"}]},
+        {"id": 92, "topic": "List", "title": "List ซ้อน List เบื้องต้น", "description": "สร้าง List แบบ 2D ขนาด 2x2 โดยรับเลข 4 ตัว บรรทัดละ 2 ตัว", "test_cases": [{"input": "1 2\n3 4", "expected": "[[1, 2], [3, 4]]"}]},
+        {"id": 93, "topic": "List", "title": "คูณสมาชิกทั้งหมด (Product)", "description": "รับ List ตัวเลข หาผลคูณของทุกตัว", "test_cases": [{"input": "2 3 4", "expected": "24"}]},
+        {"id": 94, "topic": "List", "title": "เช็ค Palindrome (List)", "description": "รับ List เช็คว่าอ่านจากหน้าไปหลัง และหลังมาหน้าเหมือนกันหรือไม่ (True/False)", "test_cases": [{"input": "1 2 1", "expected": "True"}]},
+        {"id": 95, "topic": "List", "title": "หาค่าเฉลี่ยจาก List", "description": "รับ List ตัวเลข หาค่าเฉลี่ยทั้งหมด", "test_cases": [{"input": "10 20 30", "expected": "20.0"}]},
+        {"id": 96, "topic": "List", "title": "แปลงข้อความเป็น List ตัวอักษร", "description": "รับข้อความ 1 ประโยค แตกออกมาเป็น List ตัวอักษร (ไม่รวมช่องว่าง)", "test_cases": [{"input": "Hi u", "expected": "['H', 'i', 'u']"}]},
+        {"id": 97, "topic": "List", "title": "สุ่ม List เบาๆ", "description": "รับ List คั่นด้วยช่องว่าง พิมพ์สมาชิกที่ตำแหน่ง Index คี่", "test_cases": [{"input": "A B C D", "expected": "['B', 'D']"}]},
+        {"id": 98, "topic": "List", "title": "เคลียร์ List (Clear)", "description": "รับ List แล้วแสดงผล List หลังจากลบข้อมูลทั้งหมดทิ้งไป", "test_cases": [{"input": "1 2 3", "expected": "[]"}]},
+        {"id": 99, "topic": "List", "title": "ส่วนต่างค่ามากสุดและน้อยสุด", "description": "รับ List ตัวเลข นำค่ามากสุดลบด้วยค่าน้อยสุด", "test_cases": [{"input": "1 10 5", "expected": "9"}]},
+        {"id": 100, "topic": "List", "title": "ค้นหาคำยาวที่สุดใน List", "description": "รับ List ข้อความ หาคำที่มีความยาวตัวอักษรมากที่สุด", "test_cases": [{"input": "apple banana kiwi", "expected": "banana"}]}
+    ];
+
+    const container = document.getElementById('exercise-list');
+
+    // สร้างโครงสร้างหน้าเว็บ
+    questionsData.forEach(q => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        
+        let testCasesHTML = '';
+        q.test_cases.forEach((tc, index) => {
+            testCasesHTML += `
+                <div class="test-case">
+<strong>Test Case ${index + 1}</strong>
+Input:
+${tc.input || '(ไม่มี Input)'}
+
+Expected Output:
+${tc.expected}
+                </div>
+            `;
+        });
+
+        card.innerHTML = `
+            <span class="topic-badge">${q.topic}</span>
+            <h2>ข้อที่ ${q.id}: ${q.title}</h2>
+            <p>${q.description}</p>
+            ${testCasesHTML}
+            
+            <div class="editor-section">
+                <textarea id="code-${q.id}" class="code-editor" rows="6" placeholder="# เขียนโค้ด Python ของคุณที่นี่..."></textarea>
+                <button class="run-btn" onclick="runCode(${q.id})">▶️ Run & Test</button>
+                <pre id="output-${q.id}" class="output-console">Output จะแสดงที่นี่...</pre>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    // ฟังก์ชันอ่านไฟล์ที่จำเป็นสำหรับ Skulpt
+    function builtinRead(x) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
+            throw "File not found: '" + x + "'";
+        return Sk.builtinFiles["files"][x];
+    }
+
+    // ฟังก์ชันรันโค้ดและตรวจคำตอบ
+    async function runCode(id) {
+        const code = document.getElementById(`code-${id}`).value;
+        const outputDiv = document.getElementById(`output-${id}`);
+        const q = questionsData.find(q => q.id === id);
+        
+        if (!code.trim()) {
+            outputDiv.innerHTML = "⚠️ โปรดเขียนโค้ดก่อนทำการรัน";
+            return;
+        }
+
+        outputDiv.innerHTML = "⏳ Running...\n\n";
+        let allPassed = true;
+
+        for (let i = 0; i < q.test_cases.length; i++) {
+            let tc = q.test_cases[i];
+            let inputs = tc.input ? tc.input.split('\n') : [];
+            let actualOutput = "";
+
+            // ตั้งค่า Skulpt
+            Sk.configure({
+                output: function(text) { actualOutput += text; },
+                read: builtinRead,
+                // จัดการฟังก์ชัน input() ของ Python ให้ดึงข้อมูลจาก Test Case
+                inputfun: function() {
+                    return new Promise((resolve) => {
+                        let val = inputs.length > 0 ? inputs.shift() : "";
+                        resolve(val);
+                    });
+                }
+            });
+
+            try {
+                // รันโค้ด Python แบบ Async
+                await Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, code, true));
+                
+                // ตรวจคำตอบ (ตัดช่องว่างด้านหน้า/หลังออกเพื่อลดข้อผิดพลาดจากการพิมพ์)
+                let cleanActual = actualOutput.trim();
+                let cleanExpected = tc.expected.trim();
+
+                if (cleanActual === cleanExpected) {
+                    outputDiv.innerHTML += `✅ Test Case ${i+1}: Passed\n`;
+                } else {
+                    outputDiv.innerHTML += `❌ Test Case ${i+1}: Failed\n   Expected: ${cleanExpected}\n   Got:      ${cleanActual}\n`;
+                    allPassed = false;
+                }
+            } catch (err) {
+                outputDiv.innerHTML += `⚠️ Test Case ${i+1}: Error\n   ${err.toString()}\n`;
+                allPassed = false;
+            }
+        }
+        
+        if(allPassed) {
+            outputDiv.innerHTML += `\n🎉 ยินดีด้วย! โค้ดของคุณผ่านทุก Test Case สำหรับข้อนี้`;
+            outputDiv.style.borderLeftColor = "#28a745";
+        } else {
+            outputDiv.style.borderLeftColor = "#dc3545";
+        }
+    }
+</script>
+
+</body>
+</html>
